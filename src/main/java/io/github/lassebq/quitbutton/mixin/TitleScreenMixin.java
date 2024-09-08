@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.screen.Screen;
@@ -18,6 +19,10 @@ public class TitleScreenMixin extends Screen {
 	@Redirect(target = @Desc(
 		owner = TitleScreen.class,
 		value = "init"
+	),
+	slice = @Slice(
+		from = @At(value = "CONSTANT", args = "stringValue=Options..."),
+		to = @At("TAIL")
 	),
 	require = 0,
 	at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
@@ -32,12 +37,14 @@ public class TitleScreenMixin extends Screen {
 		return true;
 	}
 
-	@Inject(target = @Desc(
+	@Inject(
+	target = @Desc(
 		owner = TitleScreen.class,
 		value = "buttonClicked",
 		args = {ButtonWidget.class}
 	),
-	require = 0, at = @At(value = "RETURN"))
+	method = "buttonClicked(Lnet/minecraft/client/gui/widget/ButtonWidget;)V",
+	require = 0, at = @At(value = "TAIL"))
 	private void handleQuitButton(ButtonWidget button, CallbackInfo ci) {
 		if(button.id == 4) {
 			this.minecraft.stop();

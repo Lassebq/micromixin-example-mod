@@ -1,0 +1,4 @@
+accessWidener v2 named
+accessible method net/minecraft/client/gui/widget/ButtonWidget <init> (IIIIILjava/lang/String;)V
+accessible field net/minecraft/client/gui/widget/ButtonWidget x I
+accessible field net/minecraft/client/gui/widget/ButtonWidget y I

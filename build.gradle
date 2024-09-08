@@ -18,7 +18,7 @@ loom {
     mixin {
         useLegacyMixinAp = false
     }
-    accessWidenerPath = file("src/main/resources/launchwrapper.accesswidener")
+    accessWidenerPath = file("src/main/resources/quitbutton.accesswidener")
 }
 
 ploceus {
@@ -33,14 +33,14 @@ dependencies {
 }
 
 remapJar {
-    targetNamespace = "named"
+    // targetNamespace = "named"
     // or official if you don't want to remap at runtime and include mappings in build (Currently broken)
     // targetNamespace = "clientOfficial" 
 }
 
 jar {
     // Include mappings for runtime remapping
-    if(remapJar.targetNamespace.get() == "named") {
+    if(remapJar.targetNamespace.get() != "clientOfficial" && remapJar.targetNamespace.get() != "intermediary") {
         from {
             loom.mappingConfiguration.tinyMappings.toFile()
         }
