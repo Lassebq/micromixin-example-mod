@@ -21,8 +21,8 @@ public class TitleScreenMixin extends Screen {
 		value = "init"
 	),
 	slice = @Slice(
-		from = @At(value = "CONSTANT", args = "stringValue=Options..."),
-		to = @At("TAIL")
+		from = @At(value = "CONSTANT", args = "stringValue=Options...")
+		// to = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z")
 	),
 	require = 0,
 	at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))

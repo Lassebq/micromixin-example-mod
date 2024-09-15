@@ -5,16 +5,47 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven {
         url 'https://stianloader.org/maven'
     }
     maven {
         url 'https://maven.ornithemc.net/releases'
     }
+    maven {
+        url 'https://maven.glass-launcher.net/releases/'
+    }
 }
 
 loom {
     clientOnlyMinecraftJar()
+    runs {
+		client {
+            // accessfixer - a lot of mappings are bad and don't respect package access, so members have to be made public
+			// log - Extra warnings and info from LaunchWrapper
+            // dev - Required for loom environments
+			vmArgs "-Dlaunchwrapper.log=true"
+			vmArgs "-Dlaunchwrapper.dev=true"
+			vmArgs "-Dlaunchwrapper.accessfixer=true"
+			programArg "--username"
+			programArg "Player"
+			programArg "--session"
+			programArg "-"
+			programArg "--tweakClass"
+			programArg "org.mcphackers.launchwrapper.micromixin.tweak.MicroMixinTweak"
+			environment = "client"
+			configName = "Minecraft Client"
+			defaultMainClass = "org.mcphackers.launchwrapper.Launch"
+			runDir = "run"
+			programArg "--gameDir"
+			programArg file(runDir).getAbsolutePath()
+			source = sourceSets.main
+			ideConfigGenerated = true
+
+			// Configure run config with the default client options.
+			// client()
+		}
+	}
     mixin {
         useLegacyMixinAp = false
     }
@@ -28,19 +59,33 @@ ploceus {
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings ploceus.featherMappings("${project.feather_build}")
-	implementation "org.stianloader:micromixin-runtime:0.6.4-a20240825"
-	implementation "org.stianloader:micromixin-annotations:0.6.4-a20240825"
+    implementation "org.stianloader:micromixin-runtime:0.6.4-a20240825"
+    implementation "org.stianloader:micromixin-annotations:0.6.4-a20240825"
+    implementation "org.stianloader:micromixin-transformer:0.6.4-a20240825"
+    implementation "org.stianloader:micromixin-remapper:0.2.0-a20240908" // For remapping mixin annotations
+    implementation "org.stianloader:stianloader-remapper:0.1.0-a20240601" // For remapping classes and references
+    implementation "net.fabricmc:mapping-io:0.3.0"
+    implementation "net.fabricmc:access-widener:2.1.0"
+    implementation 'org.json:json:20240303'
+    implementation 'org.mcphackers.rdi:rdi:1.0'
+    implementation 'org.mcphackers:launchwrapper:1.0'
+    implementation 'org.mcphackers:launchwrapper-micromixin:1.0'
+    implementation "org.ow2.asm:asm:${project.asm_version}"
+    implementation "org.ow2.asm:asm-util:${project.asm_version}"
+    implementation "org.ow2.asm:asm-tree:${project.asm_version}"
 }
 
 remapJar {
-    // targetNamespace = "named"
+    targetNamespace = "named"
     // or official if you don't want to remap at runtime and include mappings in build (Currently broken)
     // targetNamespace = "clientOfficial" 
 }
 
 jar {
     // Include mappings for runtime remapping
-    if(remapJar.targetNamespace.get() != "clientOfficial" && remapJar.targetNamespace.get() != "intermediary") {
+    if(remapJar.targetNamespace.get() != "clientOfficial"
+        && remapJar.targetNamespace.get() != "official"
+        && remapJar.targetNamespace.get() != "intermediary") {
         from {
             loom.mappingConfiguration.tinyMappings.toFile()
         }
