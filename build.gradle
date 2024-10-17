@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-	id 'fabric-loom' version '1.7-SNAPSHOT'
-	id 'ploceus' version '1.7-SNAPSHOT'
+	id 'fabric-loom' version '1.8-SNAPSHOT'
+	id 'ploceus' version '1.8.3'
 }
 
 repositories {
@@ -21,24 +21,18 @@ loom {
     clientOnlyMinecraftJar()
     runs {
 		client {
-            // accessfixer - a lot of mappings are bad and don't respect package access, so members have to be made public
 			// log - Extra warnings and info from LaunchWrapper
-            // dev - Required for loom environments
-			vmArgs "-Dlaunchwrapper.log=true"
-			vmArgs "-Dlaunchwrapper.dev=true"
-			vmArgs "-Dlaunchwrapper.accessfixer=true"
-			programArg "--username"
-			programArg "Player"
-			programArg "--session"
-			programArg "-"
-			programArg "--tweakClass"
-			programArg "org.mcphackers.launchwrapper.micromixin.tweak.MicroMixinTweak"
+            // dev - Required for loom environments. Tells LW to use "named" as targetNamespace
+            // accessfixer - a lot of mappings are bad and don't respect package access, so members have to be made public
+			vmArgs "-Dlaunchwrapper.log=true", "-Dlaunchwrapper.dev=true", "-Dlaunchwrapper.accessfixer=true"
+			programArgs "--username", "Player"
+			programArgs "--session", "-"
+			programArgs "--tweakClass", "org.mcphackers.launchwrapper.micromixin.tweak.MicroMixinTweak"
 			environment = "client"
 			configName = "Minecraft Client"
 			defaultMainClass = "org.mcphackers.launchwrapper.Launch"
 			runDir = "run"
-			programArg "--gameDir"
-			programArg file(runDir).getAbsolutePath()
+			programArgs "--gameDir", file(runDir).getAbsolutePath()
 			source = sourceSets.main
 			ideConfigGenerated = true
 
@@ -49,7 +43,7 @@ loom {
     mixin {
         useLegacyMixinAp = false
     }
-    accessWidenerPath = file("src/main/resources/quitbutton.accesswidener")
+    accessWidenerPath = file("src/main/resources/${project.modid}.accesswidener")
 }
 
 ploceus {
@@ -59,10 +53,10 @@ ploceus {
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings ploceus.featherMappings("${project.feather_build}")
-    implementation "org.stianloader:micromixin-runtime:0.6.4-a20240825"
-    implementation "org.stianloader:micromixin-annotations:0.6.4-a20240825"
-    implementation "org.stianloader:micromixin-transformer:0.6.4-a20240825"
-    implementation "org.stianloader:micromixin-remapper:0.2.0-a20240908" // For remapping mixin annotations
+	implementation "org.stianloader:micromixin-transformer:0.6.5-a20240922"
+	implementation "org.stianloader:micromixin-runtime:0.6.5-a20240922"
+	implementation "org.stianloader:micromixin-annotations:0.6.5-a20240922"
+	implementation "org.stianloader:micromixin-remapper:0.2.0-a20240908" // For remapping mixin annotations
     implementation "org.stianloader:stianloader-remapper:0.1.0-a20240601" // For remapping classes and references
     implementation "net.fabricmc:mapping-io:0.3.0"
     implementation "net.fabricmc:access-widener:2.1.0"
@@ -76,9 +70,27 @@ dependencies {
 }
 
 remapJar {
-    targetNamespace = "named"
-    // or official if you don't want to remap at runtime and include mappings in build (Currently broken)
-    // targetNamespace = "clientOfficial" 
+    // named will be dynamically remapped to whatever namespace is used in envronment (LaunchWrapper only)
+    // targetNamespace = "named"
+
+    // or official if you don't want to remap at runtime (LaunchWrapper only)
+    targetNamespace = "clientOfficial" 
+
+    // additionally, if value isn't specified - intermediary is used. It builds a fabric-compatible mod
+    // In case of LaunchWrapper the mod is dynamically remapped to official,
+    // assuming mappings are provided in a jar on classpath or inside the mod itself at mappings/mappings.tiny
+}
+
+processResources {
+    // Currently the only way to remap access wideners in loom is to specify path to it in fabric.mod.json
+    // Hopefully this is a subject to change because launchwrapper mods are not expected to contain fabric.mod.json
+    // Unless of course they advertise fabric compatibility and are remapped to intermediary
+    filesMatching(['launchwrapper.mod.json', 'fabric.mod.json']) {
+        expand 'modid': project.properties["modid"], 'mod_version': project.properties["mod_version"], 'sourceNamespace': remapJar.targetNamespace.get()
+        // sourceNamespace in json is what the mod is remapped to at build time.
+        // targetNamespace depends on environment. For dev env - named. For prod builds - official
+        // if it's set, mod is always remapped to this namespace regardless of environment
+    }
 }
 
 jar {

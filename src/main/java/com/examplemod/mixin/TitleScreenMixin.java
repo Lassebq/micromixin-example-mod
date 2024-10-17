@@ -1,4 +1,4 @@
-package io.github.lassebq.quitbutton.mixin;
+package com.examplemod.mixin;
 
 import java.util.List;
 
@@ -22,7 +22,6 @@ public class TitleScreenMixin extends Screen {
 	),
 	slice = @Slice(
 		from = @At(value = "CONSTANT", args = "stringValue=Options...")
-		// to = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z")
 	),
 	require = 0,
 	at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))
@@ -43,7 +42,7 @@ public class TitleScreenMixin extends Screen {
 		value = "buttonClicked",
 		args = {ButtonWidget.class}
 	),
-	method = "buttonClicked(Lnet/minecraft/client/gui/widget/ButtonWidget;)V",
+	// method = "buttonClicked(Lnet/minecraft/client/gui/widget/ButtonWidget;)V",
 	require = 0, at = @At(value = "TAIL"))
 	private void handleQuitButton(ButtonWidget button, CallbackInfo ci) {
 		if(button.id == 4) {

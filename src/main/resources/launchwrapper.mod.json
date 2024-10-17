@@ -1,4 +1,5 @@
 {
-    "id": "quitbutton",
-    "version": "1.0.0"
+    "id": "${modid}",
+    "version": "${mod_version}",
+    "sourceNamespace": "${sourceNamespace}"
 }
